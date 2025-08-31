@@ -3,9 +3,11 @@ import { translate } from "./translation/translate";
 import { postToBilibili } from "./post/post";
 interface Tweet {
   text: string;
-  url: string;
-  media: string[];
-  created_at: string;
+  media: {
+    mediaUrl: string;
+    width: number;
+    height: number;
+  }[];
 }
 export const integralProcess = async () => {
   let FetchedTweets = await fetchTweets();
@@ -14,12 +16,12 @@ export const integralProcess = async () => {
     let tweet = FetchedTweets[i];
     let trimmedTweet: Tweet = {
       text: tweet.text,
-      url: tweet.url,
       media:
-        tweet.extendedEntities?.media?.map(
-          (media: any) => media.media_url_https
-        ) || [],
-      created_at: tweet.createdAt,
+        tweet.extendedEntities?.media?.map((media: any) => ({
+          mediaUrl: media.media_url_https,
+          width: media.sizes?.large?.w,
+          height: media.sizes?.large?.h,
+        })) || [],
     };
     trimmedTweets.push(trimmedTweet);
   }
@@ -27,10 +29,8 @@ export const integralProcess = async () => {
   for (let i = 0; i < trimmedTweets.length; i++) {
     let tweet = trimmedTweets[i];
     let translatedTweet: Tweet = {
+      ...tweet,
       text: await translate(tweet.text),
-      url: tweet.url,
-      media: tweet.media,
-      created_at: tweet.created_at,
     };
     translatedTweets.push(translatedTweet);
   }

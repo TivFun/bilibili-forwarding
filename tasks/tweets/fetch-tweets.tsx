@@ -40,7 +40,6 @@ export const fetchTweets = async () => {
     }
 
     const data = await response.json();
-    console.log("data", data.tweets);
     return data.tweets || [];
   } catch (error) {
     console.error("Failed to get tweets:", error);

@@ -4,22 +4,15 @@ import FormData from "form-data";
 const sessdata = process.env.SESSDATA;
 const csrf = process.env.CSRF;
 
-/**
- * Uploads an image from a URL to Bilibili's server.
- * @param imageUrl The URL of the image to upload.
- * @returns The Bilibili URL of the uploaded image.
- */
 async function uploadImage(imageUrl: string): Promise<string> {
   const uploadApiUrl =
     "https://api.bilibili.com/x/dynamic/feed/draw/upload_bfs";
 
-  // Step 1: Download the image data from the external URL.
   const imageResponse = await axios.get(imageUrl, {
     responseType: "arraybuffer",
   });
   const imageBuffer = Buffer.from(imageResponse.data, "binary");
 
-  // Step 2: Prepare the multipart/form-data payload.
   const formData = new FormData();
   formData.append("file_up", imageBuffer, {
     filename: "image.png",
@@ -28,7 +21,6 @@ async function uploadImage(imageUrl: string): Promise<string> {
   formData.append("biz", "dynamic");
   formData.append("csrf", csrf);
 
-  // Step 3: Post the image data to Bilibili's upload endpoint.
   const response = await axios.post(uploadApiUrl, formData, {
     headers: {
       ...formData.getHeaders(),
@@ -52,17 +44,19 @@ export async function postToBilibili(content: any) {
   const hasMedia = content.media && content.media.length > 0;
   let bilibiliPics: any[] = [];
 
-  // If there are images, upload them first.
   if (hasMedia) {
     console.log("Uploading images to Bilibili...");
-    const uploadedUrls = await Promise.all(
-      content.media.map((url: string) => uploadImage(url))
+
+    bilibiliPics = await Promise.all(
+      content.media.map(async (item: any) => {
+        const bilibiliUrl = await uploadImage(item.mediaUrl);
+        return {
+          img_src: bilibiliUrl,
+          img_width: item.width || 0,
+          img_height: item.height || 0,
+        };
+      })
     );
-    bilibiliPics = uploadedUrls.map((url) => ({
-      img_src: url,
-      img_width: 0,
-      img_height: 0,
-    }));
   }
 
   const scene = hasMedia ? 2 : 1;
@@ -78,7 +72,7 @@ export async function postToBilibili(content: any) {
           mobi_app: "web",
         },
       },
-      pics: bilibiliPics, // Use the uploaded image data.
+      pics: bilibiliPics,
       scene: scene,
     },
   };
