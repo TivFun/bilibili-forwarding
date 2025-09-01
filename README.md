@@ -108,7 +108,7 @@ Using `pm2` is recommended over a simple cron job for this application because:
     Use `pm2` to start the `index.ts` script. It is recommended to give the process a descriptive name for easier management.
 
     ```bash
-    pm2 start index.ts --name "content-forwarding-automator"
+    pm2 start index.ts --name forwarder --interpreter npx --interpreter-args "tsx" --max-memory-restart 200M
     ```
 
 4.  **Monitor the process**:

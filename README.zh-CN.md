@@ -100,7 +100,7 @@ npx tsx tasks/integral-process.ts
     使用 `pm2` 启动 `index.ts` 脚本。建议为进程指定一个描述性的名称以便管理。
 
     ```bash
-    pm2 start index.ts --name "content-forwarding-automator"
+    pm2 start index.ts --name forwarder --interpreter npx --interpreter-args "tsx" --max-memory-restart 200M
     ```
 
 4.  **监控进程**:
